@@ -12,7 +12,7 @@ import lombok.Data;
  * @date: Created in 20:56 2017/8/7
  */
 @Data
-@Document(indexName = "one", type = "detail")
+@Document(indexName = "one", type = "one")
 public class OneTest {
 
     @ID
@@ -21,6 +21,4 @@ public class OneTest {
     @Field(textAndKeyword = true)
     private String name;
 
-    @Child(name = Phone.class)
-    private Phone phone;
 }

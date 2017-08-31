@@ -15,7 +15,6 @@ public class QueryBuilders implements Criterion {
 
     private List<QueryBuilder> list = new ArrayList<>();
 
-    private float boost;
 
     /**
      * 功能描述：Term 查询
@@ -23,7 +22,7 @@ public class QueryBuilders implements Criterion {
      * @param value 值
      */
     public QueryBuilders term(String field, Object value) {
-        list.add(new SimpleExpression(field, value, Operator.TERM, boost).toBuilder());
+        list.add(new SimpleExpression(field, value, Operator.TERM).toBuilder());
         return this;
     }
 
@@ -33,7 +32,7 @@ public class QueryBuilders implements Criterion {
      * @param values 集合值
      */
     public QueryBuilders terms(String field, Collection<String> values) {
-        list.add(new SimpleExpression(field, values, boost).toBuilder());
+        list.add(new SimpleExpression(field, values).toBuilder());
         return this;
     }
 
@@ -43,7 +42,7 @@ public class QueryBuilders implements Criterion {
      * @param value 值
      */
     public QueryBuilders fuzzy(String field, Object value) {
-        list.add(new SimpleExpression(field, value, Operator.FUZZY, boost).toBuilder());
+        list.add(new SimpleExpression(field, value, Operator.FUZZY).toBuilder());
         return this;
     }
 
@@ -62,7 +61,7 @@ public class QueryBuilders implements Criterion {
      * @param queryString 查询语句
      */
     public QueryBuilders queryString(String queryString) {
-        list.add(new SimpleExpression(queryString, Operator.QUERY_STRING, boost).toBuilder());
+        list.add(new SimpleExpression(queryString, Operator.QUERY_STRING).toBuilder());
         return this;
     }
 
@@ -71,14 +70,10 @@ public class QueryBuilders implements Criterion {
      * @param field 校验字段
      */
     public QueryBuilders exists(String field) {
-        list.add(new SimpleExpression(field, Operator.EXSISTS, boost).toBuilder());
+        list.add(new SimpleExpression(field, Operator.EXSISTS).toBuilder());
         return this;
     }
 
-    public QueryBuilders boost(float boost) {
-        this.boost = boost;
-        return this;
-    }
 
     public List<QueryBuilder> listBuilders() {
         return list;

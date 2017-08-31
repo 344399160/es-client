@@ -186,7 +186,6 @@ public class reflectTest {
         Phone phone = new Phone();
         phone.setType("lt");
         phone.setNum("18600181040");
-        one.setPhone(phone);
         elasticsearchTemplate.save(one);
         OneTest byId = elasticsearchTemplate.findById("123", OneTest.class);
         System.out.println(byId);
@@ -229,11 +228,26 @@ public class reflectTest {
     @Test
     public void boost() {
         QueryConstructor constructor = new QueryConstructor();
-        constructor.should(new QueryBuilders().fuzzy("product_name", "口罩").boost(10));
-        constructor.should(new QueryBuilders().fuzzy("register", "口罩").boost(1));
+        constructor.should(new QueryBuilders().fuzzy("product_name", "口罩"));
+        constructor.should(new QueryBuilders().fuzzy("register", "口罩"));
         Iterable<Instrument> search = elasticsearchTemplate.search(constructor, Instrument.class);
         System.out.println(JSON.toJSONString(search));
     }
 
+    @Test
+    public void testMapping() {
+        elasticsearchTemplate.putMapping(OneTest.class);
+        elasticsearchTemplate.putMapping(Phone.class);
+        OneTest one = new OneTest();
+        one.setIdS("1");
+        one.setName("testName");
+        Phone phone = new Phone();
+        phone.setNum("18600180044");
+        phone.setType("yd");
+        phone.setName("testName");
+        phone.setOneId("1");
+        elasticsearchTemplate.save(phone);
+        elasticsearchTemplate.save(one);
+    }
 
 }

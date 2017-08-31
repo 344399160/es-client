@@ -197,5 +197,5 @@ public interface ElasticsearchOperations{
      */
     <T> Map<String, Object> statSearch(QueryConstructor constructor, AggregationBuilder agg, Class<T> clazz);
 
-
+    public void testPutMapping();
 }

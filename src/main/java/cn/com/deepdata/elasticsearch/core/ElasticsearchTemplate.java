@@ -144,6 +144,31 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         return client.admin().indices().putMapping(reflectMapping(clazz)).actionGet().isAcknowledged();
     }
 
+    public void testPutMapping() {
+        checkClient();
+        XContentBuilder mapping = null;
+        try {
+            //json头
+            mapping = jsonBuilder().startObject().startObject("properties");
+            mapping.startObject("userId").field("type", "string").endObject();
+            mapping.startObject("createTime").field("type", "date").endObject();
+            mapping.endObject().endObject();
+
+//            mapping = jsonBuilder().startObject();
+//            mapping.startObject("_parent").field("type", "users").endObject();
+//            mapping.startObject("properties");
+//            mapping.startObject("name").field("type", "string").endObject();
+//            mapping.startObject("age").field("type", "integer").endObject();
+//            mapping.endObject();
+//            mapping.endObject();
+            System.out.println(mapping.string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        client.admin().indices().putMapping(Requests.putMappingRequest("testindex").type("users").source(mapping)).actionGet().isAcknowledged();
+    }
+
+
     @Override
     public <T> T save(T entity) {
         checkClient();
