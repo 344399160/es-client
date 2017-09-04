@@ -2,11 +2,15 @@ package utils;
 
 import cn.com.deepdata.elasticsearch.model.Page;
 import cn.com.deepdata.elasticsearch.model.Result;
+import com.alibaba.fastjson.JSON;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
 import java.util.*;
+
+import static utils.BeanUtils.getIdName;
+import static utils.Json.toJsonWithId;
 
 /**
  * @Author: qiaobin
@@ -26,8 +30,7 @@ public class Fomatter {
         List<T> result = new ArrayList<>(Integer.parseInt(hits.getTotalHits()+""));
         SearchHit[] searchHists = hits.getHits();
         for (SearchHit sh : searchHists) {
-            Map<String, Object> map = sh.getSource();
-            T t = Json.toTObject(map, sh.getId(), clazz);
+            T t = JSON.parseObject(toJsonWithId(JSON.toJSONString(sh.getSourceAsString()), getIdName(clazz), sh.getId()), clazz);
             result.add(t);
         }
         return result;
@@ -44,8 +47,7 @@ public class Fomatter {
         List<T> result = new ArrayList<>(Integer.parseInt(res.getSearchHits().getTotal()+""));
         cn.com.deepdata.elasticsearch.model.SearchHit[] hits = res.getSearchHits().getHits();
         for (cn.com.deepdata.elasticsearch.model.SearchHit hit : hits) {
-            Map<String, Object> map = hit.get_source();
-            T t = Json.toTObject(map, hit.get_id(), clazz);
+            T t = JSON.parseObject(toJsonWithId(JSON.toJSONString(hit.get_source()), getIdName(clazz), hit.get_id()), clazz);
             result.add(t);
         }
         return result;
@@ -62,8 +64,7 @@ public class Fomatter {
         List<T> result = new ArrayList<>(Integer.parseInt(res.getSearchHits().getTotal()+""));
         cn.com.deepdata.elasticsearch.model.SearchHit[] hits = res.getSearchHits().getHits();
         for (cn.com.deepdata.elasticsearch.model.SearchHit hit : hits) {
-            Map<String, Object> map = hit.get_source();
-            T t = Json.toTObject(map, hit.get_id(), clazz);
+            T t = JSON.parseObject(toJsonWithId(JSON.toJSONString(hit.get_source()), getIdName(clazz), hit.get_id()), clazz);
             result.add(t);
         }
         Page<T> page = new Page<>(res.getSearchHits().getTotal(), result);

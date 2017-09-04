@@ -46,31 +46,6 @@ public class BeanUtils {
         return map;
     }
 
-    /**
-     * 对象转Map
-     * @param obj
-     * @return
-     * @throws IllegalAccessException
-     */
-    public static Map<String, Object> objectToMapWithoutColumn(Object obj, String withoutName) throws IllegalAccessException {
-        if(obj == null){
-            return null;
-        }
-        Map<String, Object> map = new HashMap<>();
-        Field[] declaredFields = obj.getClass().getDeclaredFields();
-        Field[] superDeclaredFields =  obj.getClass().getSuperclass().getDeclaredFields();
-        for (Field field : declaredFields) {
-            if (!field.getName().equals(withoutName)) {
-                field.setAccessible(true);
-                map.put(field.getName(), field.get(obj));
-            }
-        }
-        for (Field field : superDeclaredFields) {
-            field.setAccessible(true);
-            map.put(field.getName(), field.get(obj));
-        }
-        return map;
-    }
 
     /**
      * 获取类中标注@ID的值
@@ -95,6 +70,7 @@ public class BeanUtils {
         }
         return null;
     }
+
 
     /**
      * 获取@ID 标签字段名

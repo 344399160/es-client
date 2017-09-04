@@ -9,6 +9,7 @@ import cn.com.deepdata.elasticsearch.core.query.QueryConstructor;
 import cn.com.deepdata.elasticsearch.model.Page;
 import cn.com.deepdata.elasticsearch.model.Result;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
 import common.MessageException;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,7 +47,6 @@ import org.springframework.util.Assert;
 import utils.BeanUtils;
 import utils.Fomatter;
 import utils.HttpRequestUtils;
-import utils.Json;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -54,13 +54,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.MessageFormat;
-import java.util.Formatter;
 import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.client.Requests.refreshRequest;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static utils.BeanUtils.getIdName;
+import static utils.Json.toJsonWithId;
 
 /**
  * @Author: qiaobin
@@ -144,29 +144,6 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         return client.admin().indices().putMapping(reflectMapping(clazz)).actionGet().isAcknowledged();
     }
 
-    public void testPutMapping() {
-        checkClient();
-        XContentBuilder mapping = null;
-        try {
-            //json头
-            mapping = jsonBuilder().startObject().startObject("properties");
-            mapping.startObject("userId").field("type", "string").endObject();
-            mapping.startObject("createTime").field("type", "date").endObject();
-            mapping.endObject().endObject();
-
-//            mapping = jsonBuilder().startObject();
-//            mapping.startObject("_parent").field("type", "users").endObject();
-//            mapping.startObject("properties");
-//            mapping.startObject("name").field("type", "string").endObject();
-//            mapping.startObject("age").field("type", "integer").endObject();
-//            mapping.endObject();
-//            mapping.endObject();
-            System.out.println(mapping.string());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        client.admin().indices().putMapping(Requests.putMappingRequest("testindex").type("users").source(mapping)).actionGet().isAcknowledged();
-    }
 
 
     @Override
@@ -178,14 +155,10 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         if (StringUtils.isNotEmpty(id)) {
             indexRequestBuilder.setId(id);
         }
-        String source = Json.toJsonStringWithoutId(entity);
+        String source = JSON.toJSONString(entity);
         IndexResponse indexResponse = indexRequestBuilder.setSource(source).get();
         refresh(clazz.getIndexName());
-        try {
-            return Json.toTObject(BeanUtils.objectToMap(entity), StringUtils.isNotEmpty(id) ? id : indexResponse.getId(), entity.getClass());
-        } catch (IllegalAccessException e) {
-            return null;
-        }
+        return (T) JSON.parseObject(toJsonWithId(source, getIdName(entity.getClass()), indexResponse.getId()), entity.getClass());
     }
 
     @Override
@@ -215,9 +188,9 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
                 throw new MessageException("@ID should be used for search id");
             }
             ElasticsearchPersistentEntity persistentEntity = getPersistentEntityFor(entity.getClass());
-            UpdateResponse updateResponse = client.update(new UpdateRequest(persistentEntity.getIndexName(), persistentEntity.getIndexType(), _id).doc(Json.toJsonStringWithoutId(entity))).get();
+            UpdateResponse updateResponse = client.update(new UpdateRequest(persistentEntity.getIndexName(), persistentEntity.getIndexType(), _id).doc(JSON.toJSONString(entity))).get();
             refresh(persistentEntity.getIndexName());
-            return Json.toTObject(BeanUtils.objectToMap(entity), StringUtils.isNotEmpty(_id) ? _id : updateResponse.getId(), entity.getClass());
+            return (T) JSON.parseObject(toJsonWithId(updateResponse.getGetResult().sourceAsString(), getIdName(entity.getClass()), updateResponse.getId()), entity.getClass());
         } catch (Exception e) {
             throw new MessageException("update failed", e);
         }
@@ -228,9 +201,9 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         try {
             checkClient();
             ElasticsearchPersistentEntity persistentEntity = getPersistentEntityFor(entity.getClass());
-            UpdateResponse updateResponse = client.update(new UpdateRequest(persistentEntity.getIndexName(), persistentEntity.getIndexType(), _id).doc(Json.toJsonStringWithoutId(entity))).get();
+            UpdateResponse updateResponse = client.update(new UpdateRequest(persistentEntity.getIndexName(), persistentEntity.getIndexType(), _id).doc(JSON.toJSONString(entity))).get();
             refresh(persistentEntity.getIndexName());
-            return Json.toTObject(BeanUtils.objectToMap(entity), StringUtils.isNotEmpty(_id) ? _id : updateResponse.getId(), entity.getClass());
+            return (T) JSON.parseObject(toJsonWithId(updateResponse.getGetResult().sourceAsString(), getIdName(entity.getClass()), updateResponse.getId()), entity.getClass());
         } catch (Exception e) {
             throw new MessageException("update failed", e);
         }
@@ -244,7 +217,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         for (T entity : entities) {
             bulkRequest.add(client.prepareIndex(persistentEntity.getIndexName(), persistentEntity.getIndexType())
-                    .setSource(Json.toJsonStringWithoutId(entity))
+                    .setSource(JSON.toJSONString(entity))
             );
         }
         bulkRequest.get();
@@ -287,7 +260,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         GetResponse response = client
                 .prepareGet(persistentEntity.getIndexName(), persistentEntity.getIndexType(), id).execute()
                 .actionGet();
-        return Json.toTObject(response.getSource(), response.getId(), clazz);
+        return JSON.parseObject(toJsonWithId(response.getSourceAsString(),getIdName(clazz), response.getId()), clazz);
     }
 
     @Override
@@ -569,6 +542,7 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
         for (Field declaredField : declaredFields) {
             //获取参数 @Field 注解属性
             cn.com.deepdata.elasticsearch.annotations.Field annotation = declaredField.getAnnotation(cn.com.deepdata.elasticsearch.annotations.Field.class);
+            JSONField jsonField = declaredField.getAnnotation(JSONField.class);  //fastJSON 注释
             //获取参数 @Child 注解属性, 主要确认该类是否有子类
             Child child = declaredField.getAnnotation(Child.class);
             if (null != child && !child.name().getName().equals("void")) {
@@ -592,8 +566,13 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
                             typeName = genericClazz.getName();
                         }
                     }
-                    mapping.startObject((null != annotation && StringUtils.isNoneEmpty(annotation.name())) ? annotation.name() : declaredField.getName())  //字段名
-                            .field("type", format(typeName));  //字段类型
+                    if (null != jsonField && Strings.isNotEmpty(jsonField.name())) {
+                        mapping.startObject(jsonField.name())  //字段名
+                                .field("type", format(typeName));  //字段类型
+                    } else {
+                        mapping.startObject(declaredField.getName())  //字段名
+                                .field("type", format(typeName));  //字段类型
+                    }
                     //参数注解属性拼接
                     mapping = getMapping(mapping, annotation);
                     mapping.endObject();

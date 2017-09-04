@@ -3,9 +3,6 @@ package cn.com.deepdata.elasticsearch.model;
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author: qiaobin
  * @description:

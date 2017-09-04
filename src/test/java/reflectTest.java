@@ -1,7 +1,6 @@
 import bo.Enterprise;
 import bo.Instrument;
 import cn.com.deepdata.elasticsearch.core.ElasticsearchTemplate;
-import cn.com.deepdata.elasticsearch.core.query.Criterion;
 import cn.com.deepdata.elasticsearch.core.query.QueryBuilders;
 import cn.com.deepdata.elasticsearch.core.query.QueryConstructor;
 import cn.com.deepdata.elasticsearch.model.Page;
@@ -236,18 +235,27 @@ public class reflectTest {
 
     @Test
     public void testMapping() {
-        elasticsearchTemplate.putMapping(OneTest.class);
+//        elasticsearchTemplate.putMapping(OneTest.class);
         elasticsearchTemplate.putMapping(Phone.class);
-        OneTest one = new OneTest();
-        one.setIdS("1");
-        one.setName("testName");
+//        OneTest one = new OneTest();
+//        one.setIdS("1");
+//        one.setName("testName");
         Phone phone = new Phone();
         phone.setNum("18600180044");
         phone.setType("yd");
         phone.setName("testName");
-        phone.setOneId("1");
-        elasticsearchTemplate.save(phone);
-        elasticsearchTemplate.save(one);
+        phone.setId("3");
+        Phone save = elasticsearchTemplate.save(phone);
+        System.out.println(save);
+//        elasticsearchTemplate.save(one);
+    }
+
+    @Test
+    public void tttt() {
+//        Phone byId = elasticsearchTemplate.findById("123", Phone.class);
+//        System.out.println(byId);
+        Iterable<Phone> phones = elasticsearchTemplate.sqlQuery("select * from one", Phone.class);
+        System.out.println(JSON.toJSONString(phones));
     }
 
 }
