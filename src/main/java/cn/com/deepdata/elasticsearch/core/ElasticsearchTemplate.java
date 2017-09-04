@@ -546,7 +546,11 @@ public class ElasticsearchTemplate implements ElasticsearchOperations {
             //获取参数 @Child 注解属性, 主要确认该类是否有子类
             Child child = declaredField.getAnnotation(Child.class);
             if (null != child && !child.name().getName().equals("void")) {
-                mapping.startObject(declaredField.getName());
+                if (null != jsonField && Strings.isNotEmpty(jsonField.name())) {//判断是否有fastjson name注解
+                    mapping.startObject(jsonField.name());
+                } else {
+                    mapping.startObject(declaredField.getName());
+                }
                 mapping.startObject("properties");
                 mapping = iterClass(child.name(), mapping);
                 mapping.endObject();
