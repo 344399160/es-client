@@ -1,5 +1,5 @@
-import bo.Enterprise;
-import bo.Instrument;
+import bo.Many;
+import bo.One;
 import cn.com.deepdata.elasticsearch.core.ElasticsearchTemplate;
 import cn.com.deepdata.elasticsearch.core.query.QueryBuilders;
 import cn.com.deepdata.elasticsearch.core.query.QueryConstructor;
@@ -203,16 +203,16 @@ public class reflectTest {
             constructor.must(new QueryBuilders().term("province", "LN").range("startDate", Long.parseLong("829670400000"), Long.parseLong("1211040000000")));  //省份
         }
         constructor.setMinimumNumberShouldMatch(1);
-        Iterable<Enterprise> enterprises = elasticsearchTemplate.search(constructor, Enterprise.class);
-        Iterator<Enterprise> iterator = enterprises.iterator();
-        System.out.println(iterator);
+//        Iterable<Enterprise> enterprises = elasticsearchTemplate.search(constructor, Enterprise.class);
+//        Iterator<Enterprise> iterator = enterprises.iterator();
+//        System.out.println(iterator);
     }
 
     @Test
     public void get() {
-        String sql = "select * from company_project limit 1";
-        Page<Enterprise> enterprisePage = elasticsearchTemplate.sqlPageQuery(sql, Enterprise.class);
-        System.out.println(enterprisePage);
+//        String sql = "select * from company_project limit 1";
+//        Page<Enterprise> enterprisePage = elasticsearchTemplate.sqlPageQuery(sql, Enterprise.class);
+//        System.out.println(enterprisePage);
     }
 
     @Test
@@ -226,11 +226,11 @@ public class reflectTest {
 
     @Test
     public void boost() {
-        QueryConstructor constructor = new QueryConstructor();
-        constructor.should(new QueryBuilders().fuzzy("product_name", "口罩"));
-        constructor.should(new QueryBuilders().fuzzy("register", "口罩"));
-        Iterable<Instrument> search = elasticsearchTemplate.search(constructor, Instrument.class);
-        System.out.println(JSON.toJSONString(search));
+//        QueryConstructor constructor = new QueryConstructor();
+//        constructor.should(new QueryBuilders().fuzzy("product_name", "口罩"));
+//        constructor.should(new QueryBuilders().fuzzy("register", "口罩"));
+//        Iterable<Instrument> search = elasticsearchTemplate.search(constructor, Instrument.class);
+//        System.out.println(JSON.toJSONString(search));
     }
 
     @Test
@@ -252,10 +252,17 @@ public class reflectTest {
 
     @Test
     public void tttt() {
-//        Phone byId = elasticsearchTemplate.findById("123", Phone.class);
-//        System.out.println(byId);
-        Iterable<Phone> phones = elasticsearchTemplate.sqlQuery("select * from one", Phone.class);
-        System.out.println(JSON.toJSONString(phones));
+//        elasticsearchTemplate.putMapping(One.class);
+//        elasticsearchTemplate.putMapping(Many.class);
+//        One one = new One("2", "b", "content");
+//        Many many = new Many("4", "b", "detail1", 1);
+//        Many many1 = new Many("5", "b", "detail2", 2);
+//        Many many2 = new Many("6", "b", "detail3", 3);
+//        elasticsearchTemplate.save(one);
+//        elasticsearchTemplate.save(many);
+//        elasticsearchTemplate.save(many1);
+//        elasticsearchTemplate.save(many2);
+        elasticsearchTemplate.createIndex("test");
     }
 
 }
